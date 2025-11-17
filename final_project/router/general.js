@@ -51,14 +51,34 @@ public_users.get('/', async function (req, res) {
   }
 });
 
-// Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
+// Get book details based on ISBN using Promise callbacks or async-await with Axios
+public_users.get('/isbn/:isbn', async function (req, res) {
   //Write your code here
-  const isbn = req.params.isbn;
-  if (books[isbn]) {
-    return res.status(200).json(books[isbn]);
-  } else {
-    return res.status(404).json({message: "Book not found"});
+  try {
+    const isbn = req.params.isbn;
+    
+    // Using async-await with Promise (Axios-style pattern)
+    const getBookByISBN = (isbn) => {
+      return new Promise((resolve, reject) => {
+        // Simulate async operation similar to axios.get()
+        setTimeout(() => {
+          if (books[isbn]) {
+            resolve({ data: books[isbn] });
+          } else {
+            reject({ status: 404, message: "Book not found" });
+          }
+        }, 0);
+      });
+    };
+    
+    // Using async-await pattern (similar to axios.get().then())
+    const response = await getBookByISBN(isbn);
+    return res.status(200).json(response.data);
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json({message: error.message});
+    }
+    return res.status(500).json({message: "Error fetching book", error: error.message});
   }
  });
   
