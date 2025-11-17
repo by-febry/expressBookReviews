@@ -82,24 +82,44 @@ public_users.get('/isbn/:isbn', async function (req, res) {
   }
  });
   
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
+// Get book details based on author using Promise callbacks or async-await with Axios
+public_users.get('/author/:author', async function (req, res) {
   //Write your code here
-  const author = req.params.author;
-  const matchingBooks = {};
-  const keys = Object.keys(books);
-  
-  for (let i = 0; i < keys.length; i++) {
-    const isbn = keys[i];
-    if (books[isbn].author === author) {
-      matchingBooks[isbn] = books[isbn];
+  try {
+    const author = req.params.author;
+    
+    // Using async-await with Promise (Axios-style pattern)
+    const getBooksByAuthor = (author) => {
+      return new Promise((resolve, reject) => {
+        // Simulate async operation similar to axios.get()
+        setTimeout(() => {
+          const matchingBooks = {};
+          const keys = Object.keys(books);
+          
+          for (let i = 0; i < keys.length; i++) {
+            const isbn = keys[i];
+            if (books[isbn].author === author) {
+              matchingBooks[isbn] = books[isbn];
+            }
+          }
+          
+          if (Object.keys(matchingBooks).length > 0) {
+            resolve({ data: matchingBooks });
+          } else {
+            reject({ status: 404, message: "No books found for this author" });
+          }
+        }, 0);
+      });
+    };
+    
+    // Using async-await pattern (similar to axios.get().then())
+    const response = await getBooksByAuthor(author);
+    return res.status(200).json(response.data);
+  } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json({message: error.message});
     }
-  }
-  
-  if (Object.keys(matchingBooks).length > 0) {
-    return res.status(200).json(matchingBooks);
-  } else {
-    return res.status(404).json({message: "No books found for this author"});
+    return res.status(500).json({message: "Error fetching books by author", error: error.message});
   }
 });
 
